@@ -1,0 +1,11 @@
+{
+  "name": "Finorra Finance",
+  "short_name": "Finorra",
+  "description": "Understand. Manage. Grow.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f766e",
+  "orientation": "portrait"
+}
