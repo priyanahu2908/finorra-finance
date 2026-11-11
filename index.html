@@ -74,37 +74,6 @@ const cloudClient = window.supabase?.createClient
   : null;
 
 const authStatus = document.getElementById("authStatus");
-      document.getElementById("cloudReadBtn").addEventListener("click", async () => {
-  if (!cloudClient) {
-    alert("Cloud connection unavailable.");
-    return;
-  }
-
-  const { data: sessionData, error: sessionError } =
-    await cloudClient.auth.getSession();
-
-  if (sessionError || !sessionData.session) {
-    alert("Please sign in first.");
-    return;
-  }
-
-  const { data, error } = await cloudClient
-    .from("transactions")
-    .select("title, amount, type, category, date")
-    .eq("legacy_id", "finorra-cloud-test-v1")
-    .maybeSingle();
-
-  if (error) {
-    alert("Read failed: " + error.message);
-  } else if (!data) {
-    alert("No cloud test transaction found.");
-  } else {
-    alert(
-      "Read successful!\n" +
-      data.title + " — ₹" + data.amount
-    );
-  }
-});
 const authEmail = document.getElementById("authEmail");
 const authPassword = document.getElementById("authPassword");
 
