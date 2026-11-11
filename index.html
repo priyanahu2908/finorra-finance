@@ -26,6 +26,7 @@
   <button id="signOutBtn" type="button">Sign out</button>
   <button id="cloudTestBtn" type="button">Test cloud database</button>
   <button id="cloudReadBtn" type="button">Read cloud test</button>
+  <button id="cloudSyncBtn" type="button">Sync transactions to cloud</button>
 </section>
   <main class="app">
 <header class="top"><div class="brand"><div class="logo">F</div><div><h1>Finorra Finance</h1><p>Understand. Manage. Grow.</p></div></div><div class="actions"><button id="csvTop">Export CSV</button><button class="primary" id="quickAdd">+ Add transaction</button></div></header>
@@ -100,6 +101,47 @@ document.getElementById("cloudTestBtn").addEventListener("click", async () => {
     alert("Database test failed: " + error.message);
   } else {
     alert("Cloud database test successful! Fictional ₹100 test transaction saved.");
+  }
+});
+document.getElementById("cloudSyncBtn").addEventListener("click", async () => {
+  if (!cloudClient) {
+    alert("Cloud connection unavailable.");
+    return;
+  }
+
+  const { data, error: sessionError } =
+    await cloudClient.auth.getSession();
+
+  if (sessionError || !data.session) {
+    alert("Please sign in first.");
+    return;
+  }
+
+  const confirmed = confirm(
+    "Upload one fictional ₹100 test transaction?"
+  );
+
+  if (!confirmed) return;
+
+  const userId = data.session.user.id;
+
+  const { error } = await cloudClient
+    .from("transactions")
+    .upsert([{
+      user_id: userId,
+      legacy_id: "finorra-sync-fictional-v1",
+      type: "expense",
+      amount: 100,
+      title: "Finorra Fictional Sync Test",
+      category: "Other",
+      date: new Date().toISOString().slice(0, 10),
+      note: "Fictional development test only"
+    }], { onConflict: "user_id,legacy_id" });
+
+  if (error) {
+    alert("Sync failed: " + error.message);
+  } else {
+    alert("Fictional test transaction synced successfully!");
   }
 });
 const authStatus = document.getElementById("authStatus");
