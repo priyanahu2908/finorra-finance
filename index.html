@@ -4,7 +4,7 @@
   <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#0f766e">
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0f766e">
-<title>Finorra Finance</title>
+<title>Finorra Finance V3</title>
 <style>
 :root{--g:#0f766e;--mint:#e5f5f1;--bg:#f4f8f7;--ink:#183936;--muted:#718581;--line:#e3ece9;--red:#c34c56}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,Segoe UI,sans-serif}.app{max-width:1100px;margin:auto;padding:18px}.top,.brand,.actions,.tabs,.head,.row,.between,.buttons{display:flex;align-items:center;gap:10px}.top,.head,.between{justify-content:space-between}.top{margin-bottom:18px}.brand h1{font-size:21px;margin:0}.brand p,.muted,.meta{color:var(--muted);font-size:12px;margin:3px 0}.logo{background:var(--g);color:white;border-radius:13px;padding:10px 13px;font-size:20px;font-weight:800}.tabs{overflow:auto;background:#eaf2f0;padding:5px;border-radius:12px;margin-bottom:18px}.tabs button{border:0;background:none;padding:10px 13px;border-radius:9px;white-space:nowrap;color:#57716c;font-weight:650}.tabs button.active{background:white;color:var(--g)}button,.btn{cursor:pointer;border:1px solid var(--line);border-radius:10px;background:white;padding:9px 12px;color:var(--ink);font-weight:650;font-size:12px}.primary{background:var(--g);color:white;border-color:var(--g)}.danger{color:var(--red);background:#fff0f0}.view{display:none}.view.active{display:block}.grid{display:grid;gap:13px}.stats{grid-template-columns:repeat(3,1fr)}.two{grid-template-columns:1.2fr .8fr}.three{grid-template-columns:repeat(3,1fr)}.card{background:white;border:1px solid var(--line);border-radius:16px;padding:17px;min-width:0;box-shadow:0 5px 20px #123c3510}.label{font-size:12px;color:var(--muted)}.value{font-size:27px;font-weight:800;margin:8px 0}.green{color:var(--g)}.red{color:var(--red)}h2{font-size:16px;margin:0}h3{font-size:13px;margin:16px 0 8px}.head{margin:20px 0 12px}.head p{font-size:12px;color:var(--muted);margin:4px 0}.field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}.field label{font-size:12px;font-weight:700;color:#536c67}input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fbfdfc;color:var(--ink);min-width:0}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.filters{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:8px;margin:12px 0}.list{display:flex;flex-direction:column}.tx{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}.tx:last-child{border:0}.ico{width:38px;height:38px;background:var(--mint);border-radius:11px;display:grid;place-items:center;font-size:18px;flex:none}.txmain{flex:1;min-width:0}.txmain strong{font-size:13px}.meta{overflow-wrap:anywhere}.right{text-align:right}.amount{font-weight:800;font-size:13px}.row{justify-content:flex-end;margin-top:5px;gap:5px}.row button{padding:5px 8px;font-size:11px}.empty{padding:24px;text-align:center;color:var(--muted);font-size:13px}.bar{height:9px;background:#edf3f1;border-radius:20px;overflow:hidden;margin:8px 0}.bar span{display:block;height:100%;background:#17a18f;border-radius:20px}.notice,.insight{padding:12px;background:#eff8f6;border:1px solid #d8eeea;border-radius:11px;font-size:12px;line-height:1.5;margin-top:9px}.warning{background:#fff8e9;border-color:#f2e2bd}.goal{padding:13px;border:1px solid var(--line);border-radius:12px;margin-top:10px}.chart{height:190px;display:flex;align-items:end;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line)}.col{height:100%;flex:1;display:flex;align-items:center;justify-content:end;flex-direction:column;gap:5px}.bars{height:155px;display:flex;align-items:end;gap:4px}.bars i{display:block;width:17px;border-radius:4px 4px 0 0}.income{background:#3aaf9d}.expense{background:#e38a90}.small{font-size:11px;color:var(--muted)}.modal{display:none;position:fixed;inset:0;background:#102b28a8;z-index:4;align-items:center;justify-content:center;padding:15px}.modal.show{display:flex}.dialog{background:white;border-radius:16px;padding:18px;width:min(480px,100%);max-height:90vh;overflow:auto}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.footer{text-align:center;color:#8b9b98;font-size:11px;padding:25px}.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#173b36;color:white;padding:10px 15px;border-radius:9px;opacity:0;pointer-events:none}.toast.show{opacity:1}.hidden{display:none!important}
 @media(max-width:700px){.app{padding:12px}.stats{grid-template-columns:1fr 1fr}.stats .card:first-child{grid-column:1/-1}.two,.three{grid-template-columns:1fr}.filters{grid-template-columns:1fr 1fr}.filters input:first-child{grid-column:1/-1}.top{align-items:flex-start}.brand h1{font-size:18px}.actions{flex-direction:column;align-items:stretch}.formgrid{grid-template-columns:1fr}}
@@ -12,21 +12,27 @@
 </style></head>
 <body>
   <section id="finorraAuth" style="max-width:500px;margin:20px auto;padding:18px;border:1px solid #d1d5db;border-radius:14px;background:#fff;">
-  <h2 style="margin-top:0;">Finorra Account</h2>
-  <p id="authStatus">You are not signed in.</p>
-
-  <input id="authEmail" type="email" placeholder="Email address"
-    style="width:100%;padding:12px;margin:6px 0;box-sizing:border-box;">
-
-  <input id="authPassword" type="password" placeholder="Password"
-    style="width:100%;padding:12px;margin:6px 0;box-sizing:border-box;">
-
-  <button id="signUpBtn" type="button">Create account</button>
-  <button id="signInBtn" type="button">Sign in</button>
-  <button id="signOutBtn" type="button">Sign out</button>
-  <button id="cloudTestBtn" type="button">Test cloud database</button>
-  <button id="cloudReadBtn" type="button">Read cloud test</button>
-  <button id="cloudSyncBtn" type="button">Sync transactions to cloud</button>
+  <h2 style="margin-top:0;">Finorra Account & Cloud Sync</h2>
+  <p id="authStatus">Checking account connection…</p>
+  <div class="formgrid">
+    <input id="authEmail" type="email" autocomplete="email" placeholder="Email address">
+    <input id="authPassword" type="password" autocomplete="current-password" placeholder="Password">
+  </div>
+  <div class="buttons" style="margin-top:8px">
+    <button class="primary" id="signUpBtn" type="button">Create account</button>
+    <button id="signInBtn" type="button">Sign in</button>
+    <button id="resetPasswordBtn" type="button">Reset password</button>
+    <button id="signOutBtn" type="button">Sign out</button>
+  </div>
+  <div class="notice" style="margin-top:12px">
+    Your entries remain on this device for offline use. Sync is manual. Cloud sync merges records and does not automatically delete cloud records.
+  </div>
+  <div class="buttons" style="margin-top:10px">
+    <button class="primary" id="syncUploadBtn" type="button">Upload local data</button>
+    <button id="syncDownloadBtn" type="button">Download cloud data</button>
+    <button id="syncBothBtn" type="button">Sync both ways</button>
+  </div>
+  <p id="syncStatus" class="small">Not synced yet.</p>
 </section>
   <main class="app">
 <header class="top"><div class="brand"><div class="logo">F</div><div><h1>Finorra Finance</h1><p>Understand. Manage. Grow.</p></div></div><div class="actions"><button id="csvTop">Export CSV</button><button class="primary" id="quickAdd">+ Add transaction</button></div></header>
@@ -46,8 +52,8 @@
 
 <section class="view" id="reports"><div class="head"><div><h2>Reports</h2><p>Monthly summary, charts and exports</p></div><input type="month" id="reportMonth" style="max-width:145px"></div><div class="grid three"><div class="card"><div class="label">Income</div><div class="value green" id="ri">₹0</div></div><div class="card"><div class="label">Expenses</div><div class="value red" id="re">₹0</div></div><div class="card"><div class="label">Net</div><div class="value" id="rn">₹0</div></div></div><div class="grid two" style="margin-top:13px"><div class="card"><h2>Six-month cash flow</h2><div class="chart" id="chart"></div><p class="small">Green: income · Red: expenses</p></div><div class="card"><h2>Category breakdown</h2><div id="reportCats"></div></div></div><div class="card" style="margin-top:13px"><h2>Export and print</h2><p class="small">CSV downloads a spreadsheet. For PDF, choose “Save as PDF” in the print menu.</p><div class="buttons" style="margin-top:12px"><button class="primary" id="csvReport">Download CSV</button><button id="print">Print / Save PDF</button></div><p class="small" id="reportCount"></p></div></section>
 
-<section class="view" id="settings"><div class="head"><div><h2>Settings and data</h2><p>Back up or restore this browser's data</p></div></div><div class="grid two"><div class="card"><h2>Backup and restore</h2><p class="small">Save transactions, budgets, goals and recurring templates in a JSON file.</p><div class="buttons"><button class="primary" id="backup">Download backup</button><label class="btn" for="restore">Restore backup</label><input id="restore" type="file" accept=".json,application/json" class="hidden"></div></div><div class="card"><h2>Privacy and safety</h2><div class="notice warning">Data is stored in this browser's local storage, not encrypted cloud storage. Never enter bank passwords, OTPs, UPI PINs, card security codes or sensitive account details. Use sample data while testing.</div><p class="small">Clearing browser data may erase your entries. Download backups regularly.</p></div></div><div class="card" style="margin-top:13px"><h2>Delete all local data</h2><p class="small">This permanently clears Finorra data from this browser.</p><button class="danger" id="clear">Delete all data</button></div><div class="card" style="margin-top:13px"><h2>About this version</h2><p class="small">This is a single-file local prototype. User accounts, multi-device sync, secure cloud backup, bank connections, notifications and production-grade security require a separately developed backend and security review. This app does not connect to banks or move money.</p></div></section>
-<div class="footer">Finorra Finance · Understand. Manage. Grow.</div></main>
+<section class="view" id="settings"><div class="head"><div><h2>Settings and data</h2><p>Back up or restore this browser's data</p></div></div><div class="grid two"><div class="card"><h2>Backup and restore</h2><p class="small">Save transactions, budgets, goals and recurring templates in a JSON file.</p><div class="buttons"><button class="primary" id="backup">Download backup</button><label class="btn" for="restore">Restore backup</label><input id="restore" type="file" accept=".json,application/json" class="hidden"></div></div><div class="card"><h2>Privacy and safety</h2><div class="notice warning">Never enter bank passwords, OTPs, UPI PINs, card security codes or sensitive account details. Finorra is not connected to banks and does not move money. Keep a backup before changing devices.</div><p class="small">Local data stays in this browser. Cloud copies are stored in your own Supabase project and protected by account-level database policies.</p></div></div><div class="card" style="margin-top:13px"><h2>Delete all local data</h2><p class="small">This permanently clears Finorra data from this browser.</p><button class="danger" id="clear">Delete all data</button></div><div class="card" style="margin-top:13px"><h2>About this version</h2><p class="small">Finorra V3 uses local browser storage plus optional manual Supabase synchronisation. It is an educational personal-finance organiser, not a bank, financial adviser or audited financial service. It does not connect to banks or move money.</p></div></section>
+<div class="footer">Finorra Finance V3 · Understand. Manage. Grow.</div></main>
 
 <div class="modal" id="txModal"><div class="dialog"><div class="modalhead"><h2 id="txHeading">Add transaction</h2><button data-close="txModal">Close</button></div><form id="txForm"><input type="hidden" id="txId"><div class="formgrid"><div class="field"><label>Type</label><select id="txType"><option value="expense">Expense</option><option value="income">Income</option></select></div><div class="field"><label>Amount (₹)</label><input id="txAmount" type="number" min=".01" step=".01" required></div><div class="field"><label>Title</label><input id="txTitle" maxlength="70" required placeholder="e.g. Lunch"></div><div class="field"><label>Category</label><select id="txCategory"></select></div><div class="field"><label>Date</label><input id="txDate" type="date" required></div><div class="field"><label>Note (optional)</label><input id="txNote" maxlength="120"></div></div><div class="buttons"><button class="primary">Save transaction</button><button type="button" data-close="txModal">Cancel</button></div></form></div></div>
 <div class="modal" id="goalModal"><div class="dialog"><div class="modalhead"><h2 id="goalHeading">Create savings goal</h2><button data-close="goalModal">Close</button></div><form id="goalForm"><input type="hidden" id="goalId"><div class="field"><label>Goal name</label><input id="goalName" maxlength="60" required></div><div class="formgrid"><div class="field"><label>Target amount (₹)</label><input id="goalTarget" type="number" min="1" step=".01" required></div><div class="field"><label>Amount saved (₹)</label><input id="goalSaved" type="number" min="0" step=".01" value="0" required></div></div><div class="field"><label>Target date (optional)</label><input id="goalDate" type="date"></div><button class="primary">Save goal</button></form></div></div>
@@ -67,83 +73,6 @@ const cloudClient = window.supabase?.createClient
     )
   : null;
 
-document.getElementById("cloudTestBtn").addEventListener("click", async () => {
-  if (!cloudClient) {
-    alert("Cloud connection unavailable.");
-    return;
-  }
-
-  const { data: sessionData, error: sessionError } =
-    await cloudClient.auth.getSession();
-
-  if (sessionError || !sessionData.session) {
-    alert("Please sign in before testing the database.");
-    return;
-  }
-
-  const userId = sessionData.session.user.id;
-
-  const { data, error } = await cloudClient
-    .from("transactions")
-    .insert({
-      user_id: userId,
-      legacy_id: "finorra-cloud-test-v1",
-      type: "expense",
-      amount: 100,
-      title: "Finorra Cloud Test",
-      category: "Other",
-      date: new Date().toISOString().slice(0, 10),
-      note: "Fictional test transaction"
-    })
-    .select();
-
-  if (error) {
-    alert("Database test failed: " + error.message);
-  } else {
-    alert("Cloud database test successful! Fictional ₹100 test transaction saved.");
-  }
-});
-document.getElementById("cloudSyncBtn").addEventListener("click", async () => {
-  if (!cloudClient) {
-    alert("Cloud connection unavailable.");
-    return;
-  }
-
-  const { data, error: sessionError } =
-    await cloudClient.auth.getSession();
-
-  if (sessionError || !data.session) {
-    alert("Please sign in first.");
-    return;
-  }
-
-  const confirmed = confirm(
-    "Upload one fictional ₹100 test transaction?"
-  );
-
-  if (!confirmed) return;
-
-  const userId = data.session.user.id;
-
-  const { error } = await cloudClient
-    .from("transactions")
-    .upsert([{
-      user_id: userId,
-      legacy_id: "finorra-sync-fictional-v1",
-      type: "expense",
-      amount: 100,
-      title: "Finorra Fictional Sync Test",
-      category: "Other",
-      date: new Date().toISOString().slice(0, 10),
-      note: "Fictional development test only"
-    }], { onConflict: "user_id,legacy_id" });
-
-  if (error) {
-    alert("Sync failed: " + error.message);
-  } else {
-    alert("Fictional test transaction synced successfully!");
-  }
-});
 const authStatus = document.getElementById("authStatus");
       document.getElementById("cloudReadBtn").addEventListener("click", async () => {
   if (!cloudClient) {
@@ -193,8 +122,8 @@ async function refreshAuthStatus() {
   }
 
   authStatus.textContent = data.session
-    ? "Signed in successfully."
-    : "You are not signed in.";
+    ? "Signed in · Cloud account ready. Local entries are not uploaded until you choose Sync."
+    : "Signed out · Local data remains available on this device.";
 }
 
 document.getElementById("signUpBtn").addEventListener("click", async () => {
@@ -245,6 +174,17 @@ document.getElementById("signInBtn").addEventListener("click", async () => {
   refreshAuthStatus();
 });
 
+document.getElementById("resetPasswordBtn").addEventListener("click", async () => {
+  if (!cloudClient) return alert("Cloud connection unavailable.");
+  const email = authEmail.value.trim();
+  if (!email) return alert("Enter your account email first.");
+  const { error } = await cloudClient.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname
+  });
+  if (error) alert(error.message);
+  else alert("If the account exists, a password reset email will be sent. Follow the email instructions.");
+});
+
 document.getElementById("signOutBtn").addEventListener("click", async () => {
   if (!cloudClient) return alert("Cloud connection unavailable.");
 
@@ -272,6 +212,97 @@ const today=()=>new Date().toISOString().slice(0,10), month=()=>today().slice(0,
 let db={transactions:[],budgets:{},goals:[],recurring:[]};
 function load(){try{let x=JSON.parse(localStorage.getItem(KEY)||'{}');db={transactions:Array.isArray(x.transactions)?x.transactions:[],budgets:x.budgets||{},goals:Array.isArray(x.goals)?x.goals:[],recurring:Array.isArray(x.recurring)?x.recurring:[]}}catch(e){}}
 function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+
+function setSyncStatus(message){const el=$('syncStatus');if(el)el.textContent=message}
+async function signedInUser(){
+  if(!cloudClient)throw new Error('Cloud library is unavailable. Connect to the internet and reload.');
+  const {data,error}=await cloudClient.auth.getSession();
+  if(error)throw error;
+  if(!data.session)throw new Error('Please sign in before syncing.');
+  return data.session.user;
+}
+function cloudRows(){
+  const tx=db.transactions.map(t=>({legacy_id:String(t.id),type:t.type,amount:Number(t.amount),title:String(t.title),category:String(t.category||'Other'),date:t.date,note:t.note||null}));
+  const goals=db.goals.map(g=>({legacy_id:String(g.id),title:String(g.name),target_amount:Number(g.target),saved_amount:Number(g.saved),deadline:g.date||null}));
+  const recurring=db.recurring.map(r=>({legacy_id:String(r.id),title:String(r.title),amount:Number(r.amount),type:r.type,category:String(r.category||'Other'),frequency:r.frequency,next_due:r.date}));
+  const budgets=[];
+  Object.entries(db.budgets||{}).forEach(([m,cats])=>Object.entries(cats||{}).forEach(([category,limit])=>budgets.push({category,monthly_limit:Number(limit),month_start:m+'-01'})));
+  return {transactions:tx,goals,recurring,budgets};
+}
+async function uploadLocalData(){
+  const user=await signedInUser(), rows=cloudRows();
+  if(!confirm('Upload your current local transactions, budgets, goals and recurring templates to the signed-in cloud account? A backup is recommended first. Existing cloud records will be updated when their matching IDs are found.'))return;
+  const tables=[
+    ['transactions',rows.transactions],
+    ['budgets',rows.budgets],
+    ['goals',rows.goals],
+    ['recurring',rows.recurring]
+  ];
+  for(const [table,items] of tables){
+    if(!items.length)continue;
+    const payload=items.map(item=>({...item,user_id:user.id}));
+    const conflict=table==='budgets'?'user_id,category,month_start':'user_id,legacy_id';
+    const {error}=await cloudClient.from(table).upsert(payload,{onConflict:conflict});
+    if(error)throw new Error(table+' upload failed: '+error.message);
+  }
+  setSyncStatus('Upload complete · '+new Date().toLocaleString());
+}
+async function downloadCloudData(){
+  const user=await signedInUser();
+  if(!confirm('Merge cloud records into this device? Existing local records with the same IDs will be updated. Other local records will be kept. Download a local backup first.'))return;
+  const specs=[
+    ['transactions','legacy_id,type,amount,title,category,date,note'],
+    ['budgets','category,monthly_limit,month_start'],
+    ['goals','legacy_id,title,target_amount,saved_amount,deadline'],
+    ['recurring','legacy_id,title,amount,type,category,frequency,next_due']
+  ];
+  const result={};
+  for(const [table,columns] of specs){
+    const {data,error}=await cloudClient.from(table).select(columns).eq('user_id',user.id);
+    if(error)throw new Error(table+' download failed: '+error.message);
+    result[table]=data||[];
+  }
+  const txMap=new Map(db.transactions.map(x=>[String(x.id),x]));
+  result.transactions.forEach(x=>{
+    if(!x.legacy_id)return;
+    txMap.set(String(x.legacy_id),{id:String(x.legacy_id),type:x.type,amount:Number(x.amount),title:x.title,category:x.category||'Other',date:x.date,note:x.note||''});
+  });
+  const goalMap=new Map(db.goals.map(x=>[String(x.id),x]));
+  result.goals.forEach(x=>{
+    if(!x.legacy_id)return;
+    goalMap.set(String(x.legacy_id),{id:String(x.legacy_id),name:x.title,target:Number(x.target_amount),saved:Number(x.saved_amount),date:x.deadline||''});
+  });
+  const recMap=new Map(db.recurring.map(x=>[String(x.id),x]));
+  result.recurring.forEach(x=>{
+    if(!x.legacy_id)return;
+    recMap.set(String(x.legacy_id),{id:String(x.legacy_id),title:x.title,amount:Number(x.amount),type:x.type,category:x.category||'Other',frequency:x.frequency,date:x.next_due});
+  });
+  const budgetMap={...(db.budgets||{})};
+  result.budgets.forEach(x=>{
+    const m=String(x.month_start).slice(0,7);
+    budgetMap[m]={...(budgetMap[m]||{}),[x.category]:Number(x.monthly_limit)};
+  });
+  db={transactions:[...txMap.values()],budgets:budgetMap,goals:[...goalMap.values()],recurring:[...recMap.values()]};
+  save();render();
+  setSyncStatus('Download and merge complete · '+new Date().toLocaleString());
+}
+async function runSync(mode){
+  setSyncStatus('Working…');
+  try{
+    if(mode==='upload')await uploadLocalData();
+    else if(mode==='download')await downloadCloudData();
+    else{
+      await uploadLocalData();
+      await downloadCloudData();
+      setSyncStatus('Two-way merge complete · '+new Date().toLocaleString());
+    }
+    msg('Cloud sync finished');
+  }catch(error){
+    setSyncStatus('Sync issue: '+(error.message||'Unknown error'));
+    alert(error.message||'Cloud sync failed.');
+  }
+}
+
 function msg(s){let t=$('toast');t.textContent=s;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
 function opts(el,all=false){el.innerHTML=(all?'<option value="all">All categories</option>':'')+CATS.map(c=>`<option>${c}</option>`).join('')}
 function sum(type,arr=db.transactions){return arr.filter(t=>t.type===type).reduce((s,t)=>s+Number(t.amount),0)}
@@ -310,6 +341,9 @@ $('backup').onclick=()=>download('finorra-backup.json',JSON.stringify(db,null,2)
 $('restore').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let x=JSON.parse(await f.text());if(!Array.isArray(x.transactions)||!Array.isArray(x.goals)||!Array.isArray(x.recurring)||typeof x.budgets!=='object')throw 0;if(!confirm('Replace current Finorra data with this backup?'))return;db={transactions:x.transactions,budgets:x.budgets||{},goals:x.goals,recurring:x.recurring};save();render();msg('Backup restored')}catch(_){alert('This does not look like a valid Finorra backup.')}e.target.value=''};
 $('clear').onclick=()=>{if(confirm('Permanently delete all Finorra data saved in this browser?')){db={transactions:[],budgets:{},goals:[],recurring:[]};save();render();msg('All data cleared')}};
 function render(){renderDash();renderTx();renderBudgets();renderGoals();renderInsights();renderReports()}
+$('syncUploadBtn').onclick=()=>runSync('upload');
+$('syncDownloadBtn').onclick=()=>runSync('download');
+$('syncBothBtn').onclick=()=>runSync('both');
 function init(){[ ['txCategory',false],['recCat',false],['budgetCat',false],['catFilter',true] ].forEach(([id,all])=>opts($(id),all));$('dashMonth').value=$('budgetMonth').value=$('reportMonth').value=month();$('txDate').value=$('recDate').value=today();load();render()}
 init();
 })();
