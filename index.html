@@ -24,6 +24,7 @@
   <button id="signUpBtn" type="button">Create account</button>
   <button id="signInBtn" type="button">Sign in</button>
   <button id="signOutBtn" type="button">Sign out</button>
+  <button id="cloudTestBtn" type="button">Test cloud database</button>
 </section>
   <main class="app">
 <header class="top"><div class="brand"><div class="logo">F</div><div><h1>Finorra Finance</h1><p>Understand. Manage. Grow.</p></div></div><div class="actions"><button id="csvTop">Export CSV</button><button class="primary" id="quickAdd">+ Add transaction</button></div></header>
@@ -64,6 +65,42 @@ const cloudClient = window.supabase?.createClient
     )
   : null;
 
+document.getElementById("cloudTestBtn").addEventListener("click", async () => {
+  if (!cloudClient) {
+    alert("Cloud connection unavailable.");
+    return;
+  }
+
+  const { data: sessionData, error: sessionError } =
+    await cloudClient.auth.getSession();
+
+  if (sessionError || !sessionData.session) {
+    alert("Please sign in before testing the database.");
+    return;
+  }
+
+  const userId = sessionData.session.user.id;
+
+  const { data, error } = await cloudClient
+    .from("transactions")
+    .insert({
+      user_id: userId,
+      legacy_id: "finorra-cloud-test-v1",
+      type: "expense",
+      amount: 100,
+      title: "Finorra Cloud Test",
+      category: "Other",
+      date: new Date().toISOString().slice(0, 10),
+      note: "Fictional test transaction"
+    })
+    .select();
+
+  if (error) {
+    alert("Database test failed: " + error.message);
+  } else {
+    alert("Cloud database test successful! Fictional ₹100 test transaction saved.");
+  }
+});
 const authStatus = document.getElementById("authStatus");
 const authEmail = document.getElementById("authEmail");
 const authPassword = document.getElementById("authPassword");
