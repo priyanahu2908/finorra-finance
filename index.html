@@ -10,7 +10,22 @@
 @media(max-width:700px){.app{padding:12px}.stats{grid-template-columns:1fr 1fr}.stats .card:first-child{grid-column:1/-1}.two,.three{grid-template-columns:1fr}.filters{grid-template-columns:1fr 1fr}.filters input:first-child{grid-column:1/-1}.top{align-items:flex-start}.brand h1{font-size:18px}.actions{flex-direction:column;align-items:stretch}.formgrid{grid-template-columns:1fr}}
 @media print{.top,.tabs,.actions,.filters,.buttons,.footer{display:none!important}#reports{display:block!important}.view{display:none!important}.card{box-shadow:none}}
 </style></head>
-<body><main class="app">
+<body>
+  <section id="finorraAuth" style="max-width:500px;margin:20px auto;padding:18px;border:1px solid #d1d5db;border-radius:14px;background:#fff;">
+  <h2 style="margin-top:0;">Finorra Account</h2>
+  <p id="authStatus">You are not signed in.</p>
+
+  <input id="authEmail" type="email" placeholder="Email address"
+    style="width:100%;padding:12px;margin:6px 0;box-sizing:border-box;">
+
+  <input id="authPassword" type="password" placeholder="Password"
+    style="width:100%;padding:12px;margin:6px 0;box-sizing:border-box;">
+
+  <button id="signUpBtn" type="button">Create account</button>
+  <button id="signInBtn" type="button">Sign in</button>
+  <button id="signOutBtn" type="button">Sign out</button>
+</section>
+  <main class="app">
 <header class="top"><div class="brand"><div class="logo">F</div><div><h1>Finorra Finance</h1><p>Understand. Manage. Grow.</p></div></div><div class="actions"><button id="csvTop">Export CSV</button><button class="primary" id="quickAdd">+ Add transaction</button></div></header>
 <nav class="tabs"><button class="active" data-tab="dashboard">Dashboard</button><button data-tab="transactions">Transactions</button><button data-tab="budgets">Budgets</button><button data-tab="goals">Savings goals</button><button data-tab="insights">Insights</button><button data-tab="reports">Reports</button><button data-tab="settings">Settings</button></nav>
 <section class="view active" id="dashboard">
@@ -36,8 +51,111 @@
 <div class="modal" id="recModal"><div class="dialog"><div class="modalhead"><h2>Recurring template</h2><button data-close="recModal">Close</button></div><form id="recForm"><div class="formgrid"><div class="field"><label>Type</label><select id="recType"><option value="expense">Expense</option><option value="income">Income</option></select></div><div class="field"><label>Amount (₹)</label><input id="recAmount" type="number" min=".01" step=".01" required></div><div class="field"><label>Title</label><input id="recTitle" required maxlength="70"></div><div class="field"><label>Category</label><select id="recCat"></select></div><div class="field"><label>Frequency</label><select id="recFreq"><option>weekly</option><option selected>monthly</option><option>yearly</option></select></div><div class="field"><label>Next date</label><input id="recDate" type="date" required></div></div><button class="primary">Save template</button></form></div></div>
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (()=>{'use strict';
+const SUPABASE_URL = "https://okovkdfgzyrdtrbujglg.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_nVIfjBqHa9BozDE-0pMPIQ_eTIElNim";
+
+const cloudClient = window.supabase?.createClient
+  ? window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    )
+  : null;
+
+const authStatus = document.getElementById("authStatus");
+const authEmail = document.getElementById("authEmail");
+const authPassword = document.getElementById("authPassword");
+
+async function refreshAuthStatus() {
+  if (!cloudClient) {
+    authStatus.textContent = "Cloud connection unavailable.";
+    return;
+  }
+
+  const { data, error } = await cloudClient.auth.getSession();
+
+  if (error) {
+    authStatus.textContent = "Could not check account status.";
+    return;
+  }
+
+  authStatus.textContent = data.session
+    ? "Signed in successfully."
+    : "You are not signed in.";
+}
+
+document.getElementById("signUpBtn").addEventListener("click", async () => {
+  if (!cloudClient) return alert("Cloud connection unavailable.");
+
+  const email = authEmail.value.trim();
+  const password = authPassword.value;
+
+  if (!email || !password) return alert("Enter your email and password.");
+
+  const { error } = await cloudClient.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: window.location.origin + window.location.pathname
+    }
+  });
+
+  if (error) {
+    alert(error.message);
+  } else {
+    alert("Account request submitted. Check your email for verification.");
+  }
+
+  refreshAuthStatus();
+});
+
+document.getElementById("signInBtn").addEventListener("click", async () => {
+  if (!cloudClient) return alert("Cloud connection unavailable.");
+
+  const email = authEmail.value.trim();
+  const password = authPassword.value;
+
+  if (!email || !password) return alert("Enter your email and password.");
+
+  const { error } = await cloudClient.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    alert(error.message);
+  } else {
+    authPassword.value = "";
+    alert("Signed in successfully.");
+  }
+
+  refreshAuthStatus();
+});
+
+document.getElementById("signOutBtn").addEventListener("click", async () => {
+  if (!cloudClient) return alert("Cloud connection unavailable.");
+
+  const { error } = await cloudClient.auth.signOut();
+
+  if (error) {
+    alert(error.message);
+  } else {
+    authPassword.value = "";
+    alert("Signed out.");
+  }
+
+  refreshAuthStatus();
+});
+
+if (cloudClient) {
+  cloudClient.auth.onAuthStateChange(() => {
+    refreshAuthStatus();
+  });
+}
+
+refreshAuthStatus();
 const $=id=>document.getElementById(id), KEY='finorra_final_v1', CATS=['Food','Travel','Shopping','Bills','Education','Health','Entertainment','Salary','Business','Other'], ICON={Food:'🍽️',Travel:'🚆',Shopping:'🛍️',Bills:'🧾',Education:'📚',Health:'💚',Entertainment:'🎬',Salary:'💼',Business:'🏢',Other:'📌'};
 const today=()=>new Date().toISOString().slice(0,10), month=()=>today().slice(0,7), uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7), cash=n=>'₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2}), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let db={transactions:[],budgets:{},goals:[],recurring:[]};
