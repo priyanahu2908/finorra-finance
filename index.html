@@ -84,8 +84,8 @@ async function refreshAuthStatus() {
   }
 
   authStatus.textContent = data.session
-    ? "Signed in · Cloud account ready. Local entries are not uploaded until you choose Sync."
-    : "Signed out · Local data remains available on this device.";
+    ? "Signed in · Your private account data is loading and syncing automatically."
+    : "Signed out · Private account data is hidden until you sign in again.";
 }
 
 document.getElementById("signUpBtn").addEventListener("click", async () => {
@@ -165,18 +165,18 @@ document.getElementById("signOutBtn").addEventListener("click", async () => {
 if (cloudClient) {
   cloudClient.auth.onAuthStateChange((event,session) => {
     refreshAuthStatus();
-    if(session) setTimeout(()=>autoSync(true),800);
-    else setSyncStatus('Signed out. Local data remains on this device.','offline');
+    if(event==='SIGNED_IN'||event==='INITIAL_SESSION'||event==='SIGNED_OUT'||event==='TOKEN_REFRESHED') activateAccount(session);
   });
 }
 
 refreshAuthStatus();
-const $=id=>document.getElementById(id), KEY='finorra_final_v1', CATS=['Food','Travel','Shopping','Bills','Education','Health','Entertainment','Salary','Business','Other'], ICON={Food:'🍽️',Travel:'🚆',Shopping:'🛍️',Bills:'🧾',Education:'📚',Health:'💚',Entertainment:'🎬',Salary:'💼',Business:'🏢',Other:'📌'};
+const $=id=>document.getElementById(id); let activeUserId=null; let KEY='finorra_guest_v1'; let SYNC_KEY='finorra_sync_meta_guest_v1'; const CATS=['Food','Travel','Shopping','Bills','Education','Health','Entertainment','Salary','Business','Other'], ICON={Food:'🍽️',Travel:'🚆',Shopping:'🛍️',Bills:'🧾',Education:'📚',Health:'💚',Entertainment:'🎬',Salary:'💼',Business:'🏢',Other:'📌'};
 const today=()=>new Date().toISOString().slice(0,10), month=()=>today().slice(0,7), uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7), cash=n=>'₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2}), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let db={transactions:[],budgets:{},goals:[],recurring:[]};
 function load(){try{let x=JSON.parse(localStorage.getItem(KEY)||'{}');db={transactions:Array.isArray(x.transactions)?x.transactions:[],budgets:x.budgets||{},goals:Array.isArray(x.goals)?x.goals:[],recurring:Array.isArray(x.recurring)?x.recurring:[]}}catch(e){}}
-const SYNC_KEY='finorra_sync_meta_v1';
-let syncBusy=false, syncTimer=null, syncReady=false;
+let syncBusy=false, syncTimer=null, syncReady=false, accountSwitchToken=0;
+function useAccountStorage(userId){activeUserId=userId||null;const suffix=activeUserId||'guest';KEY='finorra_data_'+suffix;SYNC_KEY='finorra_sync_meta_'+suffix;}
+async function activateAccount(session){const token=++accountSwitchToken;clearTimeout(syncTimer);syncBusy=false;const id=session?.user?.id||null;useAccountStorage(id);db={transactions:[],budgets:{},goals:[],recurring:[]};load();render();if(token!==accountSwitchToken)return;if(id){setSyncStatus('Account data loaded. Checking cloud…','pending');if(navigator.onLine)setTimeout(()=>{if(token===accountSwitchToken)autoSync(true)},400);}else{setSyncStatus('Signed out. Account data is hidden on this device.','offline');}}
 function setSyncStatus(message,state='pending'){
   const s=$('syncStatus'),i=$('syncIndicator'); if(s)s.textContent=message;
   if(i){i.textContent=state==='ok'?'● Synced':state==='offline'?'● Offline':state==='error'?'● Sync error':'● Sync pending';i.style.color=state==='ok'?'#0f766e':state==='error'?'#b42318':state==='offline'?'#718581':'#9a6700'}
@@ -208,7 +208,7 @@ function save(){
  writeMeta(meta);scheduleAutoSync();
 }
 function scheduleAutoSync(){
- if(!cloudClient)return;
+ if(!cloudClient||!activeUserId){setSyncStatus('Saved on this device. Sign in to sync.','offline');return;}
  if(!navigator.onLine){setSyncStatus('Changes saved on this device. They will sync when internet returns.','offline');return;}
  setSyncStatus('Changes saved. Automatic sync queued.','pending');
  clearTimeout(syncTimer);syncTimer=setTimeout(()=>autoSync(false),1200);
@@ -217,7 +217,7 @@ async function autoSync(initial){
  if(syncBusy||!cloudClient||!navigator.onLine)return;
  syncBusy=true;setSyncStatus('Synchronising…','pending');
  try{
-  const user=await signedInUser(),meta=readMeta();
+  const user=await signedInUser();if(!activeUserId||user.id!==activeUserId)throw new Error('Account changed. Please wait for the correct account to load.');const meta=readMeta();
   // Fetch canonical cloud records for this account only (RLS also enforces ownership).
   const {data:remote,error:rerr}=await cloudClient.from('sync_records').select('entity,record_id,payload,is_deleted,updated_at').eq('user_id',user.id);
   if(rerr)throw rerr;
@@ -240,7 +240,7 @@ async function autoSync(initial){
    }
   }
   if(toWrite.length){const {error}=await cloudClient.from('sync_records').upsert(toWrite,{onConflict:'user_id,entity,record_id'});if(error)throw error;}
-  writeMeta(meta);localStorage.setItem(KEY,JSON.stringify(db));render();
+  if(user.id!==activeUserId)throw new Error('Account changed during sync; no data was applied.');writeMeta(meta);localStorage.setItem(KEY,JSON.stringify(db));render();
   setSyncStatus('All changes synchronised · '+new Date().toLocaleTimeString(),'ok');
  }catch(e){setSyncStatus('Sync failed: '+(e.message||'Please try again.'),'error');}
  finally{syncBusy=false;}
@@ -306,7 +306,7 @@ window.addEventListener('offline',()=>setSyncStatus('Offline. Changes are saved 
 window.addEventListener('focus',()=>{if(navigator.onLine)autoSync(true)});
 setInterval(()=>{if(navigator.onLine&&document.visibilityState==='visible')autoSync(true)},30000);
 
-function init(){[ ['txCategory',false],['recCat',false],['budgetCat',false],['catFilter',true] ].forEach(([id,all])=>opts($(id),all));$('dashMonth').value=$('budgetMonth').value=$('reportMonth').value=month();$('txDate').value=$('recDate').value=today();load();render();if(navigator.onLine)setTimeout(()=>autoSync(true),1500);else setSyncStatus('Offline. Local mode is available.','offline')}
+function init(){[ ['txCategory',false],['recCat',false],['budgetCat',false],['catFilter',true] ].forEach(([id,all])=>opts($(id),all));$('dashMonth').value=$('budgetMonth').value=$('reportMonth').value=month();$('txDate').value=$('recDate').value=today();useAccountStorage(null);load();render();setSyncStatus('Sign in to load your private account data.','offline');if(cloudClient)cloudClient.auth.getSession().then(({data,error})=>{if(!error)activateAccount(data.session)})}
 init();
 })();
 </script>
