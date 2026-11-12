@@ -22,17 +22,10 @@
     <button class="primary" id="signUpBtn" type="button">Create account</button>
     <button id="signInBtn" type="button">Sign in</button>
     <button id="resetPasswordBtn" type="button">Reset password</button>
-    <button id="signOutBtn" type="button">Sign out</button>
   </div>
-  <div class="notice" style="margin-top:12px">
-    Your entries remain on this device for offline use. Sync is manual. Cloud sync merges records and does not automatically delete cloud records.
-  </div>
-  <div class="buttons" style="margin-top:10px">
-    <button class="primary" id="syncUploadBtn" type="button">Upload local data</button>
-    <button id="syncDownloadBtn" type="button">Download cloud data</button>
-    <button id="syncBothBtn" type="button">Sync both ways</button>
-  </div>
-  <p id="syncStatus" class="small">Not synced yet.</p>
+  <div class="notice" style="margin-top:12px">Finorra saves changes on this device first, then synchronises automatically when you are signed in and online. Deletions are synchronised too. Keep regular backups.</div>
+  <div class="notice" style="margin-top:10px"><b id="syncIndicator">● Offline / waiting</b><p id="syncStatus" class="small">Sign in to enable cloud sync.</p></div>
+  <div class="buttons" style="margin-top:10px"><button id="syncNowBtn" type="button">Sync now</button><button id="signOutBtn" type="button">Sign out</button></div>
 </section>
   <main class="app">
 <header class="top"><div class="brand"><div class="logo">F</div><div><h1>Finorra Finance</h1><p>Understand. Manage. Grow.</p></div></div><div class="actions"><button id="csvTop">Export CSV</button><button class="primary" id="quickAdd">+ Add transaction</button></div></header>
@@ -170,8 +163,10 @@ document.getElementById("signOutBtn").addEventListener("click", async () => {
 });
 
 if (cloudClient) {
-  cloudClient.auth.onAuthStateChange(() => {
+  cloudClient.auth.onAuthStateChange((event,session) => {
     refreshAuthStatus();
+    if(session) setTimeout(()=>autoSync(true),800);
+    else setSyncStatus('Signed out. Local data remains on this device.','offline');
   });
 }
 
@@ -180,97 +175,92 @@ const $=id=>document.getElementById(id), KEY='finorra_final_v1', CATS=['Food','T
 const today=()=>new Date().toISOString().slice(0,10), month=()=>today().slice(0,7), uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7), cash=n=>'₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2}), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let db={transactions:[],budgets:{},goals:[],recurring:[]};
 function load(){try{let x=JSON.parse(localStorage.getItem(KEY)||'{}');db={transactions:Array.isArray(x.transactions)?x.transactions:[],budgets:x.budgets||{},goals:Array.isArray(x.goals)?x.goals:[],recurring:Array.isArray(x.recurring)?x.recurring:[]}}catch(e){}}
-function save(){localStorage.setItem(KEY,JSON.stringify(db))}
-
-function setSyncStatus(message){const el=$('syncStatus');if(el)el.textContent=message}
-async function signedInUser(){
-  if(!cloudClient)throw new Error('Cloud library is unavailable. Connect to the internet and reload.');
-  const {data,error}=await cloudClient.auth.getSession();
-  if(error)throw error;
-  if(!data.session)throw new Error('Please sign in before syncing.');
-  return data.session.user;
+const SYNC_KEY='finorra_sync_meta_v1';
+let syncBusy=false, syncTimer=null, syncReady=false;
+function setSyncStatus(message,state='pending'){
+  const s=$('syncStatus'),i=$('syncIndicator'); if(s)s.textContent=message;
+  if(i){i.textContent=state==='ok'?'● Synced':state==='offline'?'● Offline':state==='error'?'● Sync error':'● Sync pending';i.style.color=state==='ok'?'#0f766e':state==='error'?'#b42318':state==='offline'?'#718581':'#9a6700'}
 }
-function cloudRows(){
-  const tx=db.transactions.map(t=>({legacy_id:String(t.id),type:t.type,amount:Number(t.amount),title:String(t.title),category:String(t.category||'Other'),date:t.date,note:t.note||null}));
-  const goals=db.goals.map(g=>({legacy_id:String(g.id),title:String(g.name),target_amount:Number(g.target),saved_amount:Number(g.saved),deadline:g.date||null}));
-  const recurring=db.recurring.map(r=>({legacy_id:String(r.id),title:String(r.title),amount:Number(r.amount),type:r.type,category:String(r.category||'Other'),frequency:r.frequency,next_due:r.date}));
-  const budgets=[];
-  Object.entries(db.budgets||{}).forEach(([m,cats])=>Object.entries(cats||{}).forEach(([category,limit])=>budgets.push({category,monthly_limit:Number(limit),month_start:m+'-01'})));
-  return {transactions:tx,goals,recurring,budgets};
+function readMeta(){try{return JSON.parse(localStorage.getItem(SYNC_KEY)||'{"records":{},"lastPull":null}')}catch(_){return {records:{},lastPull:null}}}
+function writeMeta(m){localStorage.setItem(SYNC_KEY,JSON.stringify(m))}
+function keyFor(entity,id){return entity+'::'+String(id)}
+function localRecords(){
+ const a=[];
+ db.transactions.forEach(x=>a.push({entity:'transactions',record_id:String(x.id),payload:x}));
+ db.goals.forEach(x=>a.push({entity:'goals',record_id:String(x.id),payload:x}));
+ db.recurring.forEach(x=>a.push({entity:'recurring',record_id:String(x.id),payload:x}));
+ Object.entries(db.budgets||{}).forEach(([m,cats])=>Object.entries(cats||{}).forEach(([c,v])=>a.push({entity:'budgets',record_id:m+'|'+c,payload:{month:m,category:c,limit:Number(v)}})));
+ return a;
 }
-async function uploadLocalData(){
-  const user=await signedInUser(), rows=cloudRows();
-  if(!confirm('Upload your current local transactions, budgets, goals and recurring templates to the signed-in cloud account? A backup is recommended first. Existing cloud records will be updated when their matching IDs are found.'))return;
-  const tables=[
-    ['transactions',rows.transactions],
-    ['budgets',rows.budgets],
-    ['goals',rows.goals],
-    ['recurring',rows.recurring]
-  ];
-  for(const [table,items] of tables){
-    if(!items.length)continue;
-    const payload=items.map(item=>({...item,user_id:user.id}));
-    const conflict=table==='budgets'?'user_id,category,month_start':'user_id,legacy_id';
-    const {error}=await cloudClient.from(table).upsert(payload,{onConflict:conflict});
-    if(error)throw new Error(table+' upload failed: '+error.message);
+function signedInUser(){return cloudClient.auth.getUser().then(({data,error})=>{if(error)throw error;if(!data.user)throw new Error('Sign in to enable automatic sync.');return data.user})}
+function save(){
+ const oldRaw=localStorage.getItem(KEY);let old={transactions:[],budgets:{},goals:[],recurring:[]};
+ try{if(oldRaw)old=JSON.parse(oldRaw)}catch(_){}
+ localStorage.setItem(KEY,JSON.stringify(db));
+ const meta=readMeta(), before=new Map();
+ (old.transactions||[]).forEach(x=>before.set(keyFor('transactions',x.id),x));
+ (old.goals||[]).forEach(x=>before.set(keyFor('goals',x.id),x));
+ (old.recurring||[]).forEach(x=>before.set(keyFor('recurring',x.id),x));
+ Object.entries(old.budgets||{}).forEach(([m,cats])=>Object.entries(cats||{}).forEach(([c,v])=>before.set(keyFor('budgets',m+'|'+c),{month:m,category:c,limit:Number(v)})));
+ const now=new Date().toISOString(), current=new Map(localRecords().map(x=>[keyFor(x.entity,x.record_id),x.payload]));
+ for(const [k,payload] of current){if(JSON.stringify(before.get(k))!==JSON.stringify(payload)){meta.records[k]={updated_at:now,deleted:false};}}
+ for(const k of before.keys()){if(!current.has(k))meta.records[k]={updated_at:now,deleted:true};}
+ writeMeta(meta);scheduleAutoSync();
+}
+function scheduleAutoSync(){
+ if(!cloudClient)return;
+ if(!navigator.onLine){setSyncStatus('Changes saved on this device. They will sync when internet returns.','offline');return;}
+ setSyncStatus('Changes saved. Automatic sync queued.','pending');
+ clearTimeout(syncTimer);syncTimer=setTimeout(()=>autoSync(false),1200);
+}
+async function autoSync(initial){
+ if(syncBusy||!cloudClient||!navigator.onLine)return;
+ syncBusy=true;setSyncStatus('Synchronising…','pending');
+ try{
+  const user=await signedInUser(),meta=readMeta();
+  // Fetch canonical cloud records for this account only (RLS also enforces ownership).
+  const {data:remote,error:rerr}=await cloudClient.from('sync_records').select('entity,record_id,payload,is_deleted,updated_at').eq('user_id',user.id);
+  if(rerr)throw rerr;
+  const cloudMap=new Map((remote||[]).map(x=>[keyFor(x.entity,x.record_id),x]));
+  const local=localRecords(), localMap=new Map(local.map(x=>[keyFor(x.entity,x.record_id),x]));
+  // First-time sign-in: pull cloud data before deciding whether local records need upload.
+  const keys=new Set([...cloudMap.keys(),...localMap.keys(),...Object.keys(meta.records)]);
+  const toWrite=[];
+  for(const k of keys){
+   const l=localMap.get(k), c=cloudMap.get(k), lm=meta.records[k];
+   if(lm && (!c || new Date(lm.updated_at).getTime()>new Date(c.updated_at).getTime())){
+     toWrite.push({user_id:user.id,entity:k.split('::')[0],record_id:k.slice(k.indexOf('::')+2),payload:lm.deleted?null:l.payload,is_deleted:!!lm.deleted,updated_at:lm.updated_at});
+   } else if(c && (!lm || new Date(c.updated_at).getTime()>=new Date(lm.updated_at).getTime())){
+     applyCloudRecord(c);
+     meta.records[k]={updated_at:c.updated_at,deleted:!!c.is_deleted};
+   } else if(l && !c && !lm){
+     const stamp=new Date().toISOString();
+     meta.records[k]={updated_at:stamp,deleted:false};
+     toWrite.push({user_id:user.id,entity:l.entity,record_id:l.record_id,payload:l.payload,is_deleted:false,updated_at:stamp});
+   }
   }
-  setSyncStatus('Upload complete · '+new Date().toLocaleString());
+  if(toWrite.length){const {error}=await cloudClient.from('sync_records').upsert(toWrite,{onConflict:'user_id,entity,record_id'});if(error)throw error;}
+  writeMeta(meta);localStorage.setItem(KEY,JSON.stringify(db));render();
+  setSyncStatus('All changes synchronised · '+new Date().toLocaleTimeString(),'ok');
+ }catch(e){setSyncStatus('Sync failed: '+(e.message||'Please try again.'),'error');}
+ finally{syncBusy=false;}
 }
-async function downloadCloudData(){
-  const user=await signedInUser();
-  if(!confirm('Merge cloud records into this device? Existing local records with the same IDs will be updated. Other local records will be kept. Download a local backup first.'))return;
-  const specs=[
-    ['transactions','legacy_id,type,amount,title,category,date,note'],
-    ['budgets','category,monthly_limit,month_start'],
-    ['goals','legacy_id,title,target_amount,saved_amount,deadline'],
-    ['recurring','legacy_id,title,amount,type,category,frequency,next_due']
-  ];
-  const result={};
-  for(const [table,columns] of specs){
-    const {data,error}=await cloudClient.from(table).select(columns).eq('user_id',user.id);
-    if(error)throw new Error(table+' download failed: '+error.message);
-    result[table]=data||[];
-  }
-  const txMap=new Map(db.transactions.map(x=>[String(x.id),x]));
-  result.transactions.forEach(x=>{
-    if(!x.legacy_id)return;
-    txMap.set(String(x.legacy_id),{id:String(x.legacy_id),type:x.type,amount:Number(x.amount),title:x.title,category:x.category||'Other',date:x.date,note:x.note||''});
-  });
-  const goalMap=new Map(db.goals.map(x=>[String(x.id),x]));
-  result.goals.forEach(x=>{
-    if(!x.legacy_id)return;
-    goalMap.set(String(x.legacy_id),{id:String(x.legacy_id),name:x.title,target:Number(x.target_amount),saved:Number(x.saved_amount),date:x.deadline||''});
-  });
-  const recMap=new Map(db.recurring.map(x=>[String(x.id),x]));
-  result.recurring.forEach(x=>{
-    if(!x.legacy_id)return;
-    recMap.set(String(x.legacy_id),{id:String(x.legacy_id),title:x.title,amount:Number(x.amount),type:x.type,category:x.category||'Other',frequency:x.frequency,date:x.next_due});
-  });
-  const budgetMap={...(db.budgets||{})};
-  result.budgets.forEach(x=>{
-    const m=String(x.month_start).slice(0,7);
-    budgetMap[m]={...(budgetMap[m]||{}),[x.category]:Number(x.monthly_limit)};
-  });
-  db={transactions:[...txMap.values()],budgets:budgetMap,goals:[...goalMap.values()],recurring:[...recMap.values()]};
-  save();render();
-  setSyncStatus('Download and merge complete · '+new Date().toLocaleString());
+function applyCloudRecord(r){
+ const id=String(r.record_id);
+ if(r.is_deleted){
+  if(r.entity==='transactions')db.transactions=db.transactions.filter(x=>String(x.id)!==id);
+  if(r.entity==='goals')db.goals=db.goals.filter(x=>String(x.id)!==id);
+  if(r.entity==='recurring')db.recurring=db.recurring.filter(x=>String(x.id)!==id);
+  if(r.entity==='budgets'){const [m,c]=id.split('|');if(db.budgets[m]){delete db.budgets[m][c];if(!Object.keys(db.budgets[m]).length)delete db.budgets[m];}}
+  return;
+ }
+ const p=r.payload||{};
+ if(r.entity==='transactions'){db.transactions=db.transactions.filter(x=>String(x.id)!==id);db.transactions.push(p);}
+ if(r.entity==='goals'){db.goals=db.goals.filter(x=>String(x.id)!==id);db.goals.push(p);}
+ if(r.entity==='recurring'){db.recurring=db.recurring.filter(x=>String(x.id)!==id);db.recurring.push(p);}
+ if(r.entity==='budgets'){db.budgets[p.month]=db.budgets[p.month]||{};db.budgets[p.month][p.category]=Number(p.limit);}
 }
-async function runSync(mode){
-  setSyncStatus('Working…');
-  try{
-    if(mode==='upload')await uploadLocalData();
-    else if(mode==='download')await downloadCloudData();
-    else{
-      await uploadLocalData();
-      await downloadCloudData();
-      setSyncStatus('Two-way merge complete · '+new Date().toLocaleString());
-    }
-    msg('Cloud sync finished');
-  }catch(error){
-    setSyncStatus('Sync issue: '+(error.message||'Unknown error'));
-    alert(error.message||'Cloud sync failed.');
-  }
-}
+async function runSync(){await autoSync(true)}
 
 function msg(s){let t=$('toast');t.textContent=s;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
 function opts(el,all=false){el.innerHTML=(all?'<option value="all">All categories</option>':'')+CATS.map(c=>`<option>${c}</option>`).join('')}
@@ -310,10 +300,13 @@ $('backup').onclick=()=>download('finorra-backup.json',JSON.stringify(db,null,2)
 $('restore').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let x=JSON.parse(await f.text());if(!Array.isArray(x.transactions)||!Array.isArray(x.goals)||!Array.isArray(x.recurring)||typeof x.budgets!=='object')throw 0;if(!confirm('Replace current Finorra data with this backup?'))return;db={transactions:x.transactions,budgets:x.budgets||{},goals:x.goals,recurring:x.recurring};save();render();msg('Backup restored')}catch(_){alert('This does not look like a valid Finorra backup.')}e.target.value=''};
 $('clear').onclick=()=>{if(confirm('Permanently delete all Finorra data saved in this browser?')){db={transactions:[],budgets:{},goals:[],recurring:[]};save();render();msg('All data cleared')}};
 function render(){renderDash();renderTx();renderBudgets();renderGoals();renderInsights();renderReports()}
-$('syncUploadBtn').onclick=()=>runSync('upload');
-$('syncDownloadBtn').onclick=()=>runSync('download');
-$('syncBothBtn').onclick=()=>runSync('both');
-function init(){[ ['txCategory',false],['recCat',false],['budgetCat',false],['catFilter',true] ].forEach(([id,all])=>opts($(id),all));$('dashMonth').value=$('budgetMonth').value=$('reportMonth').value=month();$('txDate').value=$('recDate').value=today();load();render()}
+$('syncNowBtn').onclick=()=>runSync();
+window.addEventListener('online',()=>{setSyncStatus('Internet restored. Syncing…');autoSync(true)});
+window.addEventListener('offline',()=>setSyncStatus('Offline. Changes are saved locally and queued.','offline'));
+window.addEventListener('focus',()=>{if(navigator.onLine)autoSync(true)});
+setInterval(()=>{if(navigator.onLine&&document.visibilityState==='visible')autoSync(true)},30000);
+
+function init(){[ ['txCategory',false],['recCat',false],['budgetCat',false],['catFilter',true] ].forEach(([id,all])=>opts($(id),all));$('dashMonth').value=$('budgetMonth').value=$('reportMonth').value=month();$('txDate').value=$('recDate').value=today();load();render();if(navigator.onLine)setTimeout(()=>autoSync(true),1500);else setSyncStatus('Offline. Local mode is available.','offline')}
 init();
 })();
 </script>
